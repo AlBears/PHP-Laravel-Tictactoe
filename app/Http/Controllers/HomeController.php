@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\User;
+use App\Game;
+use App\Turn;
 
 class HomeController extends Controller
 {
@@ -24,6 +27,25 @@ class HomeController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        return view('home', ['user' => $user]);
+        $users = User::where('id', '!=', $user->id)->paginate(5);
+        return view('home', ['user' => $user, 'users' => $users]);
+    }
+
+    public function newGame(Request $request)
+    {
+        $user = $request->user();
+        $otherUserId = $request->get('user_id');
+        $gameId = Game::insertGetId([]);
+        for($i = 1; $i <= 9; $i++)
+        {
+          Turn::insert([
+            "game_id" => $gameId,
+            "id" => $i,
+            "type" => $i % 2 ? 'x' : 'o',
+            "player_id" => $i % 2 ? $user->id : $otherUserId
+          ]);
+        }
+
+        return redirect("/board/{$gameId}");
     }
 }
