@@ -6,6 +6,7 @@
         <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-body">
+
                   <div class="profile-picture">
                     <img class="img-circle img-responsive" src="https://www.gravatar.com/avatar/{{ md5($user->email) }}?d=retro&s=200" alt="">
                   </div>
@@ -23,6 +24,19 @@
         <div class="col-md-8">
           <div class="panel panel-default">
             <div class="panel-body">
+              <div class="text-right">
+                <form class="form-inline" method="get">
+                  <label for="">Search: </label>
+                    <div class="input-group">
+                      <input type="text" name="search" class="form-control" value="{{ request('search') }}">
+                      <span class="input-group-btn">
+                        <button class="btn btn-primary" type="submit">
+                          <i class="fa fa-search"></i>
+                        </button>
+                      </span>
+                    </div>
+                </form>
+              </div>
               <div class="list-group">
                 @foreach($users as $_user)
                   <a class="list-group-item clearfix">

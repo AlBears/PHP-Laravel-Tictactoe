@@ -27,7 +27,13 @@ class HomeController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $users = User::where('id', '!=', $user->id)->paginate(5);
+        $usersQuery = User::where('id', '!=', $user->id);
+
+        if($request->has('search')){
+          $usersQuery->where('name', 'like', "%{$request->get('search')}%");
+        }
+
+        $users = $usersQuery->paginate(5);
         return view('home', ['user' => $user, 'users' => $users]);
     }
 
@@ -48,4 +54,5 @@ class HomeController extends Controller
 
         return redirect("/board/{$gameId}");
     }
+
 }
