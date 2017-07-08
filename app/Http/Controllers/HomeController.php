@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\User;
 use App\Game;
 use App\Turn;
+use App\Events\NewGame;
 
 class HomeController extends Controller
 {
@@ -51,6 +52,8 @@ class HomeController extends Controller
             "player_id" => $i % 2 ? $user->id : $otherUserId
           ]);
         }
+
+        event(new NewGame($otherUserId, $gameId, $user->name));
 
         return redirect("/board/{$gameId}");
     }

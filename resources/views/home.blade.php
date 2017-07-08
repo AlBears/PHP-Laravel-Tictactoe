@@ -1,5 +1,23 @@
 @extends('layouts.app')
 
+@section('scripts')
+<script language="javascript">
+  var pusher = new Pusher('54cd370b03cc4e635da5', {cluster: 'eu', encrypted: true})
+        .subscribe('new-game-channel')
+        .bind("App\\Events\\NewGame", function(data) {
+            if(data.destinationUserId == '{{ $user->id }}'){
+              $('#from').html(data.from);
+              $('#new-game-form').attr('action', '/board/' + data.gameId);
+              $('#new-game-modal').modal('show');
+        }
+  });
+
+  $('#play-button').on('click', function(){
+    $('#new-game-form').submit();
+  })
+</script>
+@endsection
+
 @section('content')
 <div class="container">
     <div class="row">
@@ -59,4 +77,25 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="new-game-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title">New Game</h4>
+      </div>
+      <div class="modal-body">
+        <p><span id="from"></span> invited you to game</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="play-button">Play</button>
+      </div>
+    </div>
+  </div>
+</div>
+<form id="new-game-form" method="get">
+  {{ csrf_field() }}
+</form>
 @endsection
