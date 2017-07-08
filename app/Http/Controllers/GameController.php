@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Turn;
+use App\Events\Play;
 use Illuminate\Http\Request;
 
 class GameController extends Controller
@@ -13,7 +15,7 @@ class GameController extends Controller
 
       $players = Turn::where('game_id', '=', $id)->select('player_id', 'type')->distinct()->get();
       $playerType = $user->id == $players[0]->player_id ? $players[0]->type : $players[1]->type;
-      $otherUserId = $user->id == $players[0]->player_id ? $players[1]->type : $players[0]->type;
+      $otherPlayerId = $user->id == $players[0]->player_id ? $players[1]->player_id : $players[0]->player_id;
 
       $pastTurns = Turn::where('game_id', '=', $id)->whereNotNull('location')->orderBy('id')->get();
       $nextTurn = Turn::where('game_id', '=', $id)->whereNull('location')->orderBy('id')->first();
@@ -72,5 +74,19 @@ class GameController extends Controller
       }
 
       return view('board', compact('user', 'id', 'nextTurn', 'locations', 'playerType', 'otherPlayerId'));
+    }
+
+    public function play(Request $request, $id)
+    {
+      $user = $request->user();
+      $location = $request->get('location');
+
+      $turn = Turn::where('game_id', '=', $id)->whereNull('location')->orderBy('id')->first();
+      $turn->location = $location;
+      $turn->save();
+
+      event(new Play($id, $turn->type, $location, $user->id));
+
+      return response()->json(["status" => "success", "data" => "Saved"]);
     }
 }
