@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 
 use App\Turn;
+use App\User;
+use App\Game;
 use App\Events\Play;
 use Illuminate\Http\Request;
 use App\Events\GameOver;
@@ -95,12 +97,21 @@ class GameController extends Controller
     {
       $user = $request->user();
       $location = $request->get('location');
+      $result = $request->get('result');
+      $score = $user->score;
+      if ($result == 'win') {
+        $score++;
+        User::where('id', $user->id)->update(['score' => $score]);
+        Game::where('id', $id)->update(['winner_id' => $user->id]);
+      }
 
       $turn = Turn::where('game_id', '=', $id)->whereNull('location')->orderBy('id')->first();
       $turn->location = $location;
       $turn->save();
 
-      event(new GameOver($id, $user->id, $request->get('result'), $location, $turn->type));
+      Game::where('id', $id)->update(['end_date' => date('Y-m-d H:i:s')]);
+
+      event(new GameOver($id, $user->id, $result, $location, $turn->type));
       return response()->json(["status" => "success", "data" => "Saved"]);
     }
 }

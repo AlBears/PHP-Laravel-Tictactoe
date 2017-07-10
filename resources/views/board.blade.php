@@ -97,7 +97,6 @@ var pusher = new Pusher('54cd370b03cc4e635da5', {cluster: 'eu', encrypted: true}
         });
         pusher.subscribe('game-over-channel-{{ $id }}-{{ $otherPlayerId }}')
               .bind("App\\Events\\GameOver", function(data){
-                console.log(data);
               $('#block-'+data.location).removeClass('player-{{ $playerType }}').addClass('player-'+data.type);
               $('#block-'+data.location).attr('checked', true);
               if(data.result == 'win') {
