@@ -5,6 +5,7 @@
   var pusher = new Pusher('54cd370b03cc4e635da5', {cluster: 'eu', encrypted: true})
         .subscribe('new-game-channel')
         .bind("App\\Events\\NewGame", function(data) {
+          console.log(data, '{{ $user->id }}');
             if(data.destinationUserId == '{{ $user->id }}'){
               $('#from').html(data.from);
               $('#new-game-form').attr('action', '/board/' + data.gameId);

@@ -24,3 +24,5 @@ Route::post('/new-game', 'HomeController@newGame');
 Route::get('/board/{id}', 'GameController@board');
 
 Route::post('/play/{id}', 'GameController@play');
+
+Route::post('/game-over/{id}', 'GameController@gameOver');

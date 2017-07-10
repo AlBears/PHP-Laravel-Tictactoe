@@ -2,30 +2,152 @@
 
 @section('scripts')
 <script language="javascript">
-var pusher = new Pusher('54cd370b03cc4e635da5', {cluster: 'eu', encrypted: true})
-        .subscribe('game-channel-{{ $id }}-{{ $otherPlayerId }}')
+function checkResult()
+{
+  var win = false;
+  if(
+      $('#block-1.player-{{$playerType}}:checked').length &&
+      $('#block-2.player-{{$playerType}}:checked').length &&
+      $('#block-3.player-{{$playerType}}:checked').length
+    )
+    {
+      win = true;
+    }
+    //Middle Row
+    else if (
+      $('#block-4.player-{{$playerType}}:checked').length &&
+      $('#block-5.player-{{$playerType}}:checked').length &&
+      $('#block-6.player-{{$playerType}}:checked').length
+    )
+    {
+      win = true;
+    }
+    //Bottom Row
+    else if (
+      $('#block-7.player-{{$playerType}}:checked').length &&
+      $('#block-8.player-{{$playerType}}:checked').length &&
+      $('#block-9.player-{{$playerType}}:checked').length
+    )
+    {
+      win = true;
+    }
+    //Left Col
+    else if (
+      $('#block-1.player-{{$playerType}}:checked').length &&
+      $('#block-4.player-{{$playerType}}:checked').length &&
+      $('#block-7.player-{{$playerType}}:checked').length
+    )
+    {
+      win = true;
+    }
+    //Center Col
+    else if (
+      $('#block-2.player-{{$playerType}}:checked').length &&
+      $('#block-5.player-{{$playerType}}:checked').length &&
+      $('#block-8.player-{{$playerType}}:checked').length
+    )
+    {
+      win = true;
+    }
+    //Right Col
+    else if (
+      $('#block-3.player-{{$playerType}}:checked').length &&
+      $('#block-6.player-{{$playerType}}:checked').length &&
+      $('#block-9.player-{{$playerType}}:checked').length
+    )
+    {
+      win = true;
+    }
+    //Diagonal Left
+    else if (
+      $('#block-1.player-{{$playerType}}:checked').length &&
+      $('#block-5.player-{{$playerType}}:checked').length &&
+      $('#block-9.player-{{$playerType}}:checked').length
+    )
+    {
+      win = true;
+    }
+    //Diagonal Right
+    else if (
+      $('#block-3.player-{{$playerType}}:checked').length &&
+      $('#block-5.player-{{$playerType}}:checked').length &&
+      $('#block-7.player-{{$playerType}}:checked').length
+    )
+    {
+      win = true;
+    }
+    if (!win){
+      if($('input[type="radio"]:checked').length == 9){
+        return 'tie';
+      }
+    }
+    else {
+      return 'win';
+    }
+
+    return false;
+}
+var pusher = new Pusher('54cd370b03cc4e635da5', {cluster: 'eu', encrypted: true});
+        pusher.subscribe('game-channel-{{ $id }}-{{ $otherPlayerId }}')
         .bind("App\\Events\\Play", function(data){
           $('#block-'+data.location).removeClass('player-{{ $playerType }}').addClass('player-'+data.type);
           $('#block-'+data.location).attr('checked', true);
           $('input[type=radio]').removeAttr('disabled');
           $('.profile-username').html('You are next!');
-
-});
+        });
+        pusher.subscribe('game-over-channel-{{ $id }}-{{ $otherPlayerId }}')
+              .bind("App\\Events\\GameOver", function(data){
+                console.log(data);
+              $('#block-'+data.location).removeClass('player-{{ $playerType }}').addClass('player-'+data.type);
+              $('#block-'+data.location).attr('checked', true);
+              if(data.result == 'win') {
+                $('.profile-username').html('You Loose!');
+              }
+              else {
+                $('.profile-username').html('Its a tie!');
+              }
+              $('#exit-button').show();
+        });
 
 $(document).ready(function(){
   $('input[type=radio]').on('click', function(){
-    $('.profile-username').html('Waiting on player 2...');
-    $.ajax({
-      url: '/play/{{ $nextTurn->game_id }}',
-      method: 'POST',
-      data: {
-        location: $(this).val(),
-        _token: $('input[name=_token]').val()
-      },
-      success: function(data) {
-        console.log('done');
+    $('input[type=radio]').attr('disabled', true);
+    var result = checkResult();
+    if(!result) {
+      $('.profile-username').html('Waiting on player 2...');
+      $.ajax({
+        url: '/play/{{ $nextTurn->game_id }}',
+        method: 'POST',
+        data: {
+          location: $(this).val(),
+          _token: $('input[name=_token]').val()
+        },
+        success: function(data) {
+        }
+      });
+    }
+    else
+    {
+      if(result == 'win') {
+        $('.profile-username').html('You Win!');
       }
-    });
+      else {
+        $('.profile-username').html('Its a tie!');
+      }
+      $('#exit-button').show();
+      //$('.profile-username').html('Waiting on player 2...');
+      $.ajax({
+        url: '/game-over/{{ $nextTurn->game_id }}',
+        method: 'POST',
+        data: {
+          location: $(this).val(),
+          result,
+          _token: $('input[name=_token]').val()
+        },
+        success: function(data) {
+        }
+      });
+    }
   });
 });
 </script>
@@ -55,6 +177,13 @@ $(document).ready(function(){
           <label for="block-{{ $index }}"></label>
         @endforeach
       </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12 text-center">
+      <a id="exit-button" href="/home" class="btn btn-lg btn-primary"
+          style="display:none;">Exit Game
+      </a>
     </div>
   </div>
 </div>
